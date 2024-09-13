@@ -26,7 +26,7 @@ router.delete(
 // // Task-Create
 router.post("/CreateTask", AuthVerifyMiddleware, TaskController.CreateTask);
 // Task-Update
-router.get(
+router.put(
   "/UpdateTask/:id/:status",
   AuthVerifyMiddleware,
   TaskController.UpdateTask
