@@ -74,39 +74,22 @@ exports.ListTaskByStatus = (req, res) => {
     }
   );
 };
-exports.TaskStatusCount = async (req, res) => {
-  try {
-    let email = req.headers["email"];
 
-    // Perform the aggregation with await
-    let data = await TaskModel.aggregate([
+
+exports.TaskStausCount = (req, res) => {
+  let email = req.headers["email"];
+
+  TaskModel.aggregate(
+    [
       { $match: { email: email } },
       { $group: { _id: "$status", sum: { $count: {} } } },
-    ]);
-
-    // Send success response
-    res.status(201).json({ status: "success", data: data });
-  } catch (err) {
-    // Handle any errors
-    res.status(401).json({ status: "Fail", data: err });
-  }
+    ],
+    (err, data) => {
+      if (err) {
+        res.status(401).json({ status: "Fail", data: err });
+      } else {
+        res.status(201).json({ status: "success", data: data });
+      }
+    }
+  );
 };
-
-
-// exports.TaskStausCount = (req, res) => {
-//   let email = req.headers["email"];
-
-//   TaskModel.aggregate(
-//     [
-//       { $match: { email: email } },
-//       { $group: { _id: "$status", sum: { $count: {} } } },
-//     ],
-//     (err, data) => {
-//       if (err) {
-//         res.status(401).json({ status: "Fail", data: err });
-//       } else {
-//         res.status(201).json({ status: "success", data: data });
-//       }
-//     }
-//   );
-// };
