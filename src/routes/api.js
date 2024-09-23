@@ -12,7 +12,7 @@ router.get("/RecoveryVerifyEmail/:email", UserController.RecoveryVerifyEmail);
 router.get("/RecoveryVerifyOTP/:email/:otp", UserController.RecoveryVerifyOTP);
 router.post("/ResetPassword", UserController.ResetPassword);
 // // U=Update
-router.post(
+router.put(
   "/UpdateProfiles",
   AuthVerifyMiddleware,
   UserController.UpdateProfiles
