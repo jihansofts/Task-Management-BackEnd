@@ -20,18 +20,18 @@ exports.Registrations = async (req, res) => {
 exports.Logins = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await UserModel.findOne({ email: email });
-    if (user) {
-      const isMatch = await bcrypt.compare(password, user.password);
+    const data = await UserModel.findOne({ email: email });
+    if (data) {
+      const isMatch = await bcrypt.compare(password, data.password);
       if (!isMatch) {
         return res
           .status(401)
           .json({ status: "fail", data: "Invalid Password" });
       }
-      const token = jwt.sign({ email: user.email }, process.env.SECRET_KEY, {
+      const token = jwt.sign({ email: data.email }, process.env.SECRET_KEY, {
         expiresIn: "1d",
       });
-      res.status(201).json({ status: "success", data: token, user: user });
+      res.status(201).json({ status: "success", token: token, data: data });
     } else {
       res.status(401).json({ status: "fail", data: "User Not Found" });
     }
