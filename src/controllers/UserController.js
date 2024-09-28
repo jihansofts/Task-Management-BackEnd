@@ -2,12 +2,14 @@ const UserModel = require("../models/UserModel");
 const OTPModel = require("../models/OTPModel");
 const SendEmailUtility = require("../utility/SendEmailUtility");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 // Registration
 
 exports.Registrations = async (req, res) => {
   try {
     const user = new UserModel(req.body);
+    user.password = await bcrypt.hash(req.body.password, 10);
     const result = await user.save();
     res.status(201).json({ status: "success", data: result });
   } catch (error) {
@@ -16,30 +18,25 @@ exports.Registrations = async (req, res) => {
 };
 
 exports.Logins = async (req, res) => {
-  let reqBody = req.body;
-  const data = await UserModel.aggregate([
-    { $match: reqBody },
-    {
-      $project: {
-        _id: 1,
-        email: 1,
-        firstName: 1,
-        lastName: 1,
-        mobile: 1,
-        photo: 1,
-        password: 1,
-      },
-    },
-  ]);
-  let token = jwt.sign({ users: data }, process.env.SECRET_KEY);
-  if (data.length > 0) {
-    res.status(201).json({ status: "success", token: token, data: data });
-  } else {
-    res.status(401).json({ status: "fail", data: "User Not Found" });
-  }
   try {
+    const { email, password } = req.body;
+    const user = await UserModel.findOne({ email: email });
+    if (user) {
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res
+          .status(401)
+          .json({ status: "fail", data: "Invalid Password" });
+      }
+      const token = jwt.sign({ email: user.email }, process.env.SECRET_KEY, {
+        expiresIn: "1d",
+      });
+      res.status(201).json({ status: "success", data: token, user: user });
+    } else {
+      res.status(401).json({ status: "fail", data: "User Not Found" });
+    }
   } catch (error) {
-    res.status(401).json({ status: "fail", data: error });
+    res.status(500).json({ status: "fail", data: error });
   }
 };
 
@@ -47,7 +44,11 @@ exports.UpdateProfiles = async (req, res) => {
   try {
     let email = req.headers["email"];
     let reqBody = req.body;
+    if (reqBody.password) {
+      reqBody.password = await bcrypt.hash(reqBody.password, 10);
+    }
     const data = await UserModel.updateOne({ email: email }, reqBody);
+    console.log(data, "data");
     res.status(201).json({ status: "success", data: data });
   } catch (error) {
     res.status(401).json({ status: "fail", data: error });

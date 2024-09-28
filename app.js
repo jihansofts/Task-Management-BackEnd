@@ -40,13 +40,8 @@ let URI = process.env.MONGODB_URL;
 let OPTION = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  autoIndex: false,
-  maxPoolSize: 10,
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-  family: 4,
 };
-// mongoose.set("strictQuery", false);
+mongoose.set("strictQuery", false);
 async function ConnectDB() {
   try {
     await mongoose.connect(URI, OPTION);
