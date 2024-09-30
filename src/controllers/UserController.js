@@ -131,20 +131,20 @@ exports.RecoveryVerifyOTP = async (req, res) => {
 exports.ResetPassword = async (req, res) => {
   let email = req.body["email"];
   let OTPCode = req.body["OTP"];
-  let NewPass = req.body["password"];
+  let password = req.body["password"];
   let statusUpdate = 1;
-
   try {
     let OTPUsedCount = await OTPModel.aggregate([
       { $match: { email: email, otp: OTPCode, status: statusUpdate } },
       { $count: "total" },
     ]);
     if (OTPUsedCount.length > 0) {
+      let hashPass = await bcrypt.hash(password, 10);
       let PassUpdate = await UserModel.updateOne(
         { email: email },
-        { password: NewPass }
+        { $set: { password: hashPass } }
       );
-      res.status(200).json({ status: "success", data: PassUpdate });
+      res.status(201).json({ status: "success", data: PassUpdate });
     } else {
       res.status(401).json({ status: "fail", data: "Invalid Request" });
     }
