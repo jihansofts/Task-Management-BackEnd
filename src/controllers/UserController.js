@@ -29,7 +29,7 @@ exports.Logins = async (req, res) => {
           .json({ status: "fail", data: "Invalid Password" });
       }
       const token = jwt.sign({ email: data.email }, process.env.SECRET_KEY, {
-        expiresIn: "1d",
+        expiresIn: "7d",
       });
       res.status(201).json({ status: "success", token: token, data: data });
     } else {
@@ -68,12 +68,18 @@ exports.DeleteUser = (req, res) => {
 };
 
 exports.UserProfileDetails = async (req, res) => {
-  let email = req.headers["email"];
-  const emailFind = await UserModel.find({ email: email });
-  if (emailFind) {
-    res.status(201).json({ status: "success", data: emailFind });
-  } else {
-    res.status(401).json({ status: "fail", data: "User Not Found" });
+  try {
+    let email = req.headers["email"];
+    const emailFind = await UserModel.find({ email: email }).select(
+      "-password"
+    );
+    if (emailFind) {
+      res.status(201).json({ status: "success", data: emailFind });
+    } else {
+      res.status(401).json({ status: "fail", data: "User Not Found" });
+    }
+  } catch (error) {
+    res.status(404).json({ status: "fail", data: error });
   }
 };
 
